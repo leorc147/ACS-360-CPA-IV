@@ -6,96 +6,154 @@
     <title>ACS 360 - CPA-IV</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/papa-parse/5.3.2/papaparse.min.js"></script>
+    
     <style>
         :root {
-            --bg: #f8f9fa; --card: #ffffff; --text: #2c3e50;
-            --ok-bg: #e6fffa; --ok-txt: #1a7f64;
-            --ft-bg: #fff5f5; --ft-txt: #b91c1c;
+            --bg: #f8f9fa; --header: #ffffff; --text: #2c3e50; --card: #ffffff;
+            --ok-bg: #e6fffa; --ok-txt: #1a7f64; --ok-brd: #b2f5ea;
+            --ft-bg: #fff5f5; --ft-txt: #b91c1c; --ft-brd: #feb2b2;
         }
         [data-theme="dark"] {
-            --bg: #121212; --card: #1e1e1e; --text: #e0e0e0;
-            --ok-bg: #1b5e20; --ok-txt: #c8e6c9;
-            --ft-bg: #7f1d1d; --ft-txt: #fecaca;
+            --bg: #121212; --header: #1e1e1e; --text: #e0e0e0; --card: #1e1e1e;
+            --ok-bg: #1b5e20; --ok-txt: #c8e6c9; --ok-brd: #2e7d32;
+            --ft-bg: #7f1d1d; --ft-txt: #fecaca; --ft-brd: #991b1b;
         }
-        body { font-family: sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; }
-        .header { background: var(--card); padding: 15px; border-radius: 12px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        .card { background: var(--card); border-radius: 12px; padding: 16px; margin-bottom: 16px; border: 1px solid #ddd; }
-        .paciente-nome { font-size: 18px; font-weight: bold; margin: 0; }
-        .grid-indicadores { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-top: 15px; }
-        .badge { padding: 10px; border-radius: 8px; border: 1px solid #ddd; }
-        .badge.ok { background: var(--ok-bg); color: var(--ok-txt); }
-        .badge.falta { background: var(--ft-bg); color: var(--ft-txt); }
-        .upload-box { border: 2px dashed #ccc; padding: 40px; text-align: center; background: var(--card); border-radius: 12px; }
-        #filtroMA { width: 100%; padding: 12px; margin-bottom: 20px; border-radius: 8px; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; }
+        .header { background: var(--header); padding: 15px; border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .theme-btn { padding: 8px 16px; border-radius: 20px; border: 1px solid #ddd; background: var(--card); color: var(--text); cursor: pointer; font-size: 12px; }
+        
+        .upload-area { border: 2px dashed #cbd5e0; padding: 40px; border-radius: 15px; text-align: center; background: var(--card); }
+        #filtroMA { width: 100%; padding: 12px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #ddd; background: var(--card); color: var(--text); }
+
+        /* Estilo dos Cards Baseado nas Imagens Fornecidas */
+        .card { background: var(--card); border-radius: 12px; padding: 16px; margin-bottom: 16px; border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 4px 6px rgba(0,0,0,0.05); position: relative; }
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; }
+        .paciente-nome { font-size: 18px; font-weight: 800; margin: 0; text-transform: uppercase; }
+        .tag-area { background: #edf2f7; color: #4a5568; padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-left: 8px; }
+        .conf-valor { font-size: 22px; font-weight: 900; color: #d69e2e; }
+        .btn-trash { background: none; border: none; font-size: 20px; cursor: pointer; opacity: 0.5; color: var(--text); }
+        .info-sub { font-size: 13px; color: #718096; margin: 2px 0; }
+
+        .grid-indicadores { display: grid; grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)); gap: 10px; margin-top: 15px; }
+        .badge { padding: 12px; border-radius: 10px; border: 1px solid transparent; cursor: pointer; }
+        .badge.ok { background: var(--ok-bg); color: var(--ok-txt); border-color: var(--ok-brd); }
+        .badge.falta { background: var(--ft-bg); color: var(--ft-txt); border-color: var(--ft-brd); }
+        .b-label { font-size: 10px; font-weight: 800; display: block; margin-bottom: 4px; opacity: 0.9; }
+        .b-info { font-size: 13px; font-weight: 700; }
     </style>
 </head>
 <body data-theme="light">
+
     <div class="header">
         <h2 style="margin:0">ACS-360-CPA-IV</h2>
-        <button onclick="document.body.setAttribute('data-theme', document.body.getAttribute('data-theme') === 'light' ? 'dark' : 'light')" style="margin-top:10px; padding:5px 10px; border-radius:15px; border:1px solid #ccc; cursor:pointer;">Alternar Tema 🌙/☀️</button>
+        <button class="theme-btn" onclick="toggleTheme()" style="margin-top:10px">🌙/☀️ Alternar Tema</button>
     </div>
 
-    <div id="uploadView">
-        <div class="upload-box">
+    <div id="viewUpload">
+        <div class="upload-area">
             <p>Selecione o arquivo <b>CSV</b> ou <b>ZIP/RAR</b></p>
-            <input type="file" id="fInput" accept=".csv,.zip" onchange="handleFile()">
+            <input type="file" id="inputFile" accept=".csv,.zip" onchange="processar()">
         </div>
     </div>
 
-    <div id="mainView" style="display:none">
+    <div id="viewMain" style="display:none">
         <select id="filtroMA" onchange="render()"></select>
-        <div id="lista"></div>
+        <div id="listaPacientes"></div>
     </div>
 
     <script>
-        let dados = [];
-        async function handleFile() {
-            const f = document.getElementById('fInput').files[0];
-            if (!f) return;
-            if (f.name.endsWith('.zip')) {
-                const zip = await JSZip.loadAsync(f);
-                for (let n in zip.files) {
-                    if (n.endsWith('.csv')) parse(await zip.files[n].async("string"));
+        let db = [];
+        let edicoes = JSON.parse(localStorage.getItem('acs360_edicoes')) || {};
+
+        function toggleTheme() {
+            const b = document.body;
+            b.setAttribute('data-theme', b.getAttribute('data-theme') === 'light' ? 'dark' : 'light');
+        }
+
+        async function processar() {
+            const file = document.getElementById('inputFile').files[0];
+            if (!file) return;
+
+            if (file.name.endsWith('.zip')) {
+                const zip = await JSZip.loadAsync(file);
+                for (let name in zip.files) {
+                    if (name.endsWith('.csv')) {
+                        const content = await zip.files[name].async("string");
+                        parseCSV(content);
+                    }
                 }
             } else {
-                const r = new FileReader();
-                r.onload = e => parse(e.target.result);
-                r.readAsText(f, 'ISO-8859-1');
+                const reader = new FileReader();
+                reader.onload = e => parseCSV(e.target.result);
+                reader.readAsText(file, 'ISO-8859-1');
             }
         }
-        function parse(c) {
-            Papa.parse(c, { header: true, delimiter: ";", skipEmptyLines: true, complete: res => {
-                dados = res.data;
-                const mas = [...new Set(dados.map(p => p.Microárea))].sort();
-                document.getElementById('filtroMA').innerHTML = mas.map(m => `<option value="${m}">Microárea ${m}</option>`).join('');
-                document.getElementById('uploadView').style.display = 'none';
-                document.getElementById('mainView').style.display = 'block';
-                render();
-            }});
+
+        function parseCSV(content) {
+            Papa.parse(content, {
+                header: true, delimiter: ";", skipEmptyLines: true,
+                complete: function(results) {
+                    db = [...db, ...results.data];
+                    setupApp();
+                }
+            });
         }
+
+        function setupApp() {
+            const mas = [...new Set(db.map(p => p.Microárea))].filter(m => m).sort();
+            document.getElementById('filtroMA').innerHTML = 
+                '<option value="">Selecione a Microárea</option>' + 
+                mas.map(m => `<option value="${m}">Microárea ${m}</option>`).join('');
+            
+            document.getElementById('viewUpload').style.display = 'none';
+            document.getElementById('viewMain').style.display = 'block';
+        }
+
         function render() {
             const ma = document.getElementById('filtroMA').value;
-            const l = document.getElementById('lista');
-            l.innerHTML = '';
-            dados.filter(p => p.Microárea === ma).forEach(p => {
-                const d = document.createElement('div');
-                d.className = 'card';
-                d.innerHTML = `
-                    <div style="display:flex; justify-content:space-between">
+            const container = document.getElementById('listaPacientes');
+            container.innerHTML = '';
+
+            db.filter(p => p.Microárea === ma).forEach(p => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                
+                // Exemplo de layout baseado nas fotos (Anair/Almerindo)
+                card.innerHTML = `
+                    <div class="card-header">
                         <div>
-                            <p class="paciente-nome">${p.Nome} <span style="font-size:10px; background:#eee; padding:2px 5px; border-radius:4px">ÁREA ${p.Microárea}</span></p>
-                            <p style="font-size:12px; color:#666; margin:5px 0">Idade: ${p.Idade} | ${p.Endereço || ''}</p>
+                            <p class="paciente-nome">${p.Nome} <span class="tag-area">ÁREA ${p.Microárea}</span></p>
+                            <p class="info-sub">Idade: ${p.Idade}</p>
+                            <p class="info-sub">${p.Endereço || 'Endereço não informado'}</p>
                         </div>
                         <div style="text-align:right">
-                            <span style="font-size:20px; font-weight:bold; color:#d69e2e">75%</span>
+                            <span class="conf-valor">75%</span><br>
+                            <button class="btn-trash">🗑️</button>
                         </div>
                     </div>
                     <div class="grid-indicadores">
-                        <div class="badge ok"><b>CONSULTA:</b> OK</div>
-                        <div class="badge falta"><b>VACINA:</b> PENDENTE</div>
-                    </div>`;
-                l.appendChild(d);
+                        <div class="badge ok" onclick="editarManual('${p.CPF}', 'CONSULTA')">
+                            <span class="b-label">CONSULTA (12M)</span>
+                            <span class="b-info">${edicoes[p.CPF]?.CONSULTA || 'OK'}</span>
+                        </div>
+                        <div class="badge falta" onclick="editarManual('${p.CPF}', 'VACINA')">
+                            <span class="b-label">VACINA INFLUENZA</span>
+                            <span class="b-info">${edicoes[p.CPF]?.VACINA || 'PENDENTE'}</span>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
             });
+        }
+
+        function editarManual(cpf, campo) {
+            const valor = prompt(`Informar dado para ${campo}:`);
+            if (valor) {
+                if (!edicoes[cpf]) edicoes[cpf] = {};
+                edicoes[cpf][campo] = valor;
+                localStorage.setItem('acs360_edicoes', JSON.stringify(edicoes));
+                render();
+            }
         }
     </script>
 </body>
